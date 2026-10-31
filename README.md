@@ -10,6 +10,8 @@ actually happened on screen, on 31 trials of a 44-task protocol fixed in
 advance. Every number below is computed by [`src/evaluate.py`](src/evaluate.py)
 and checked by the tests on each push.
 
+<p align="center"><img src="results/tradeoff.png" alt="Errors of each decision rule: false done vs false failed" width="78%"></p>
+
 ## Key findings
 
 <!-- findings:start -->
