@@ -27,6 +27,9 @@ jobs:
           mkdir -p _site
           cp -r site/* _site/
           cp -r data results docs evidence _site/
+          # stamp asset links with the commit so browsers never mix old and new files
+          sed -i "s/app\.js\"/app.js?v=${GITHUB_SHA::8}\"/; s/style\.css\"/style.css?v=${GITHUB_SHA::8}\"/" _site/index.html
+          grep -c "?v=${GITHUB_SHA::8}" _site/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
