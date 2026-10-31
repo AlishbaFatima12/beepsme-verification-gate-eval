@@ -94,9 +94,17 @@ tr.detail td { background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .detail dl { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; margin: 4px 0; }
 @media (max-width: 600px) { .detail dl { grid-template-columns: 1fr; } }
 .detail dt { color: var(--ink-3); }
-.detail dd { margin: 0; }
+.detail dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px;
   border: 1px solid var(--line); white-space: nowrap; }
 .chip.ok { background: var(--ok-bg); color: var(--ok-ink); border-color: transparent; }
 .chip.err { background: var(--err-bg); color: var(--err-ink); border-color: transparent; }
 .chip.muted { color: var(--ink-3); }
+
+.shot { margin: 0; }
+.shot img { width: min(640px, calc(100vw - 140px)); height: auto; border: 1px solid var(--line); border-radius: 6px; display: block; }
+.shot figcaption { color: var(--ink-3); font-size: 13px; margin-top: 4px; }
+.detail .muted { color: var(--ink-3); }
+.sheet { margin-top: 14px; }
+.sheet summary { cursor: pointer; color: var(--accent); }
+.sheet img { max-width: 560px; width: 100%; border: 1px solid var(--line); border-radius: 6px; margin-top: 10px; }

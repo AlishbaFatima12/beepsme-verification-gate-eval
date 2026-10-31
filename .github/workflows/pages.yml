@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -r site/* _site/
-          cp -r data results docs _site/
+          cp -r data results docs evidence _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

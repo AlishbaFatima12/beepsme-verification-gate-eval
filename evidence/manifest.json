@@ -1,0 +1,15 @@
+{
+  "note": "Screenshots taken at the end of each task's scored attempt, cropped to the relevant window. See evidence/README.md for what was excluded and why.",
+  "screenshots": {
+    "EVAL-HW-01": "Word document the agent created for 'What is 47 x 23?' (the full solution is in data/artifacts/EVAL-HW-01.md).",
+    "EVAL-HW-02": "Word document the agent created for 'Solve for x: 3x + 7 = 22' (full solution in data/artifacts/EVAL-HW-02.md).",
+    "EVAL-HW-03": "Word document with the worked solution: 45 minutes converted to 0.75 h, speed 80 km/h.",
+    "EVAL-HW-07": "The problem on screen at the end of the attempt; the solution was saved to a file (data/artifacts/EVAL-HW-07.md).",
+    "EVAL-READ-01": "The article the agent read aloud.",
+    "EVAL-READ-02": "The article the agent summarised aloud in Urdu.",
+    "EVAL-TEACH-01": "The page the agent was teaching, at the end of the attempt.",
+    "EVAL-TEACH-02": "The page the agent was teaching in Urdu, scrolled to the precipitation paragraph.",
+    "EVAL-TEACH-05": "The page the agent was teaching after an ambiguous 'teach me this'.",
+    "EVAL-XLATE-02": "Notepad after 'translate this to Spanish and write it in Notepad': the agent typed 'Buenos dias'."
+  }
+}

@@ -31,10 +31,11 @@ function parseCSV(text) {
 
 async function load() {
   const csv = (p) => fetch(p).then((r) => { if (!r.ok) throw new Error(p); return r.text(); }).then(parseCSV);
-  const [tasks, gt, gate, sample, second, results] = await Promise.all([
+  const [tasks, gt, gate, sample, second, results, manifest] = await Promise.all([
     csv("data/tasks.csv"), csv("data/ground_truth.csv"), csv("data/gate_outputs.csv"),
     csv("data/second_rater_sample.csv"), csv("data/second_rater_labels.csv"),
     fetch("results/results.json").then((r) => r.json()),
+    fetch("evidence/manifest.json").then((r) => (r.ok ? r.json() : { screenshots: {} })),
   ]);
   const byId = (rows) => Object.fromEntries(rows.map((r) => [r.task_id, r]));
   const G = byId(gt), O = byId(gate), S = byId(second);
@@ -42,7 +43,8 @@ async function load() {
   const all = tasks.map((t) => {
     const g = G[t.task_id], o = O[t.task_id];
     const scored = Boolean(g && o);
-    const row = { ...t, scored, sampled: sampled.has(t.task_id), second: S[t.task_id]?.world_state_success ?? "" };
+    const row = { ...t, scored, sampled: sampled.has(t.task_id), second: S[t.task_id]?.world_state_success ?? "",
+      shot: manifest.screenshots[t.task_id] ?? "" };
     if (scored) {
       Object.assign(row, {
         truth: +g.world_state_success, achievable: +g.achievable, how: g.how_verified, notes: g.notes,
@@ -202,13 +204,14 @@ function trials({ all }) {
       (!fc || (fc === "unscored" ? !r.scored : r.cell === fc)));
     $("count").textContent = `${rows.length} of ${all.length} tasks`;
     $("trialTable").innerHTML = "<thead><tr><th>Task</th><th>Command</th><th>Designed to</th>" +
-      "<th>Truth</th><th>Verdict</th><th>Confidence</th><th>Outcome</th></tr></thead><tbody>" +
+      "<th>Truth</th><th>Verdict</th><th>Confidence</th><th>Outcome</th><th>Screenshot</th></tr></thead><tbody>" +
       rows.map((r, i) => `<tr class="row" tabindex="0" data-i="${i}">` +
         `<td>${esc(r.task_id.replace("EVAL-", ""))}</td><td>${esc(r.description)}</td>` +
         `<td>${esc(r.intended_regime.replace(/_/g, " "))}</td>` +
         `<td>${r.scored ? (r.truth ? "success" : "failure") : ""}</td>` +
         `<td>${r.scored ? (r.gate ? "done" : "failed") : ""}</td>` +
-        `<td>${r.scored ? r.conf : ""}</td><td>${cellChip(r)}</td></tr>`).join("") + "</tbody>";
+        `<td>${r.scored ? r.conf : ""}</td><td>${cellChip(r)}</td>` +
+        `<td>${r.shot ? '<span class="chip">view</span>' : ""}</td></tr>`).join("") + "</tbody>";
     $("trialTable").querySelectorAll("tr.row").forEach((tr) => {
       const toggle = () => {
         const next = tr.nextElementSibling;
@@ -216,13 +219,20 @@ function trials({ all }) {
         const r = rows[+tr.dataset.i];
         const det = document.createElement("tr");
         det.className = "detail";
-        det.innerHTML = `<td colspan="7"><dl>
+        det.innerHTML = `<td colspan="8"><dl>
           <dt>Setup</dt><dd>${esc(r.precondition || "none")}</dd>
           <dt>Oracle (written in June)</dt><dd>${esc(r.oracle)}</dd>
           ${r.scored ? `<dt>What the rater checked</dt><dd>${esc(r.how)}</dd>
           <dt>Achievable at all?</dt><dd>${r.achievable ? "yes" : "no"}</dd>
           <dt>Agent’s verdict</dt><dd>${r.gate ? "done" : "failed"}${r.reason ? ` (reason: ${esc(r.reason)})` : ""}</dd>
           <dt>Self-confidence</dt><dd>${r.conf} / 100</dd>` : `<dt>Status</dt><dd>${esc(r.study_status.replace("_", " "))}</dd>`}
+          ${r.shot ? `<dt>Screenshot</dt><dd><figure class="shot">
+            <a href="evidence/screenshots/${esc(r.task_id)}.png" target="_blank" rel="noopener">
+            <img src="evidence/screenshots/${esc(r.task_id)}.png" loading="lazy"
+                 alt="Screenshot at the end of ${esc(r.task_id)}: ${esc(r.shot)}"></a>
+            <figcaption>${esc(r.shot)}</figcaption></figure></dd>`
+            : r.scored ? `<dt>Screenshot</dt><dd class="muted">Not published for this trial
+              (<a href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/blob/main/evidence/README.md">why</a>).</dd>` : ""}
         </dl></td>`;
         tr.after(det);
       };

@@ -13,6 +13,7 @@ and checked by the tests on each push.
 **[Open the interactive explorer](https://alishbafatima12.github.io/beepsme-verification-gate-eval/)**:
 move the decision threshold and watch the errors shift, browse all 44 tasks,
 and compare the two raters. **[Technical report (PDF)](docs/technical_report.pdf)**.
+**[Evidence screenshots](evidence/README.md)** from the scored attempts, and the blind rating sheet.
 
 <p align="center"><img src="results/tradeoff.png" alt="Errors of each decision rule: false done vs false failed" width="78%"></p>
 
