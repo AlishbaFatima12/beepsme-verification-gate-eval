@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Report Explorer</title>
+<meta name="description" content="Interactive results: scoring a desktop LLM agent's success reports against world-state ground truth.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="wrap">
+  <p class="kicker">BeepSME verification-gate evaluation</p>
+  <h1>Can an LLM agent&rsquo;s &ldquo;done&rdquo; be trusted?</h1>
+  <p class="lede">A desktop agent&rsquo;s end-of-task reports, scored against what actually happened on screen.
+    Every number on this page is computed in your browser from the repository&rsquo;s data files.</p>
+  <nav class="links">
+    <a href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval">Code and data</a>
+    <a href="docs/technical_report.pdf">Technical report (PDF)</a>
+    <a href="#trials">Browse the trials</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section aria-labelledby="h-numbers">
+    <h2 id="h-numbers">The short version</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-labelledby="h-rule">
+    <h2 id="h-rule">Choose a decision rule</h2>
+    <p class="sub">Should the agent say &ldquo;done&rdquo;? Pick a rule and watch where its mistakes go.
+      Moving the threshold up removes false &ldquo;done&rdquo; reports but adds false &ldquo;failed&rdquo; ones.</p>
+    <div class="rule-controls" role="radiogroup" aria-label="Decision rule">
+      <label><input type="radio" name="rule" value="claim"> Logged claim field</label>
+      <label><input type="radio" name="rule" value="gate" checked> Agent&rsquo;s own verdict</label>
+      <label><input type="radio" name="rule" value="conf"> Self-confidence &ge;
+        <output id="thrOut">35</output></label>
+    </div>
+    <input type="range" id="thr" min="0" max="80" step="1" value="35" aria-label="Self-confidence threshold">
+    <div class="rule-grid">
+      <div>
+        <table class="cm" aria-label="Confusion matrix for the chosen rule">
+          <thead><tr><th></th><th>Reports &ldquo;done&rdquo;</th><th>Reports &ldquo;failed&rdquo;</th></tr></thead>
+          <tbody>
+            <tr><th>Task succeeded</th><td id="cTP"></td><td id="cFN" class="err"></td></tr>
+            <tr><th>Task failed</th><td id="cFP" class="err"></td><td id="cTN"></td></tr>
+          </tbody>
+        </table>
+        <p class="readout" id="readout" aria-live="polite"></p>
+      </div>
+      <figure class="chart">
+        <svg id="tradeoff" viewBox="0 0 440 300" role="img"
+             aria-label="False done versus false failed for every decision rule"></svg>
+        <figcaption>Each point is a rule. The bottom-left corner (no errors) is never reached.</figcaption>
+        <div class="tip" id="tip" hidden></div>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-raters">
+    <h2 id="h-raters">Two raters, one question: what counts as success?</h2>
+    <p class="sub" id="raterSummary"></p>
+    <div class="table-scroll"><table class="data" id="raterTable"></table></div>
+  </section>
+
+  <section aria-labelledby="h-trials" id="trials">
+    <h2 id="h-trials">Every task</h2>
+    <p class="sub">All 44 pre-specified tasks. Click a row to see the oracle, what the rater checked and what the
+      agent reported.</p>
+    <div class="filters">
+      <label>Skill <select id="fSkill"><option value="">All</option></select></label>
+      <label>Designed to <select id="fRegime"><option value="">All</option></select></label>
+      <label>Verdict outcome <select id="fCell">
+        <option value="">All</option><option>TP</option><option>FP</option><option>TN</option><option>FN</option>
+        <option value="unscored">Not scored</option></select></label>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="table-scroll"><table class="data" id="trialTable"></table></div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Syeda Alishba Fatima &middot; MIT license &middot; Source of every number:
+    <code>data/</code> and <code>results/results.json</code> in the repository.</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

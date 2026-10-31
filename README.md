@@ -10,6 +10,10 @@ actually happened on screen, on 31 trials of a 44-task protocol fixed in
 advance. Every number below is computed by [`src/evaluate.py`](src/evaluate.py)
 and checked by the tests on each push.
 
+**[Open the interactive explorer](https://alishbafatima12.github.io/beepsme-verification-gate-eval/)**:
+move the decision threshold and watch the errors shift, browse all 44 tasks,
+and compare the two raters. **[Technical report (PDF)](docs/technical_report.pdf)**.
+
 <p align="center"><img src="results/tradeoff.png" alt="Errors of each decision rule: false done vs false failed" width="78%"></p>
 
 ## Key findings
