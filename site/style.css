@@ -108,3 +108,10 @@ tr.detail td { background: color-mix(in srgb, var(--ink) 3%, transparent); }
 .sheet { margin-top: 14px; }
 .sheet summary { cursor: pointer; color: var(--accent); }
 .sheet img { max-width: 560px; width: 100%; border: 1px solid var(--line); border-radius: 6px; margin-top: 10px; }
+
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.gallery figure { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.gallery img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; display: block;
+  border-bottom: 1px solid var(--line); }
+.gallery figcaption { font-size: 13px; color: var(--ink-2); padding: 8px 10px; }
+.gallery .muted { color: var(--ink-3); }

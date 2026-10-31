@@ -190,6 +190,22 @@ function raters({ all, results }) {
 }
 
 // ---------------------------------------------------------------------------
+// Screenshot gallery
+// ---------------------------------------------------------------------------
+function gallery({ all }) {
+  const shots = all.filter((r) => r.shot);
+  $("gallery").innerHTML = shots.map((r) => {
+    const src = `evidence/screenshots/${esc(r.task_id)}.png`;
+    const outcome = r.scored ? `${r.truth ? "succeeded" : "failed"}; agent said ${r.gate ? "done" : "failed"}` : "";
+    return `<figure><a href="${src}" target="_blank" rel="noopener">
+      <img src="${src}" loading="lazy" alt="${esc(r.task_id)}: ${esc(r.shot)}"></a>
+      <figcaption><b>${esc(r.task_id.replace("EVAL-", ""))}</b> “${esc(r.description)}”
+      <span class="chip ${r.cell === "TP" || r.cell === "TN" ? "ok" : "err"}">${esc(r.cell)}</span><br>
+      ${esc(r.shot)} <span class="muted">(${outcome})</span></figcaption></figure>`;
+  }).join("");
+}
+
+// ---------------------------------------------------------------------------
 // Trial browser
 // ---------------------------------------------------------------------------
 function trials({ all }) {
@@ -244,7 +260,7 @@ function trials({ all }) {
   render();
 }
 
-load().then((data) => { tiles(data); ruleExplorer(data); raters(data); trials(data); })
+load().then((data) => { tiles(data); ruleExplorer(data); raters(data); gallery(data); trials(data); })
   .catch((err) => {
     document.querySelector("main").insertAdjacentHTML("afterbegin",
       `<section><p>Could not load the data files (${esc(err.message)}). Open this page through GitHub Pages ` +
