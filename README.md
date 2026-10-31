@@ -1,70 +1,82 @@
-# BeepSME verification-gate evaluation
+# Can an LLM agent's "done" be trusted?
 
-A desktop LLM agent's own "it worked / it failed" reports, scored blind against
-what actually happened, on 31 trials of a 44-task protocol fixed in advance.
+[![tests](https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/actions/workflows/ci.yml)
+![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
+![license](https://img.shields.io/badge/license-MIT-green)
+
+An evaluation of the verification gate in BeepSME, a desktop LLM agent I
+built. The agent's own "it worked / it failed" reports are scored against what
+actually happened on screen, on 31 trials of a 44-task protocol fixed in
+advance. Every number below is computed by [`src/evaluate.py`](src/evaluate.py)
+and checked by the tests on each push.
+
+## Key findings
+
+<!-- findings:start -->
+- **The field the protocol named as the agent's claim reports success on 31 of 31 trials**, including every impossible task. It turned out to be hardcoded, so it carries no information.
+- **The agent's real verdict is right on 21 of 31 trials (accuracy 0.677).** It errs both ways: 5 over-confident and 5 over-deferring. Every over-deferral has the same cause: `ai_http_413`, a request-size error raised after the content had already been delivered. 4 of the 5 over-confident cases were tasks that could not be done: the gate has no "declined" outcome, so an honest refusal and a silent no-op both end as success.
+- **A post-hoc self-confidence score ranks successes above failures (ROC AUC 0.798)**, but coarsely: 20 of 31 trials scored exactly 15, and no failure scored above 15. Mean confidence was lower on failures (9.64) than on successes (23.65).
+- **Choosing the decision rule chooses the failure mode.** Counting (over-confident, over-deferring) errors: the claim field gives (14, 0), the verdict (5, 5), and accepting only confidence of 35 or more (0, 12). None of the rules keeps both low.
+- **A blind human second rating** of 10 random trials agreed with the first rater on 6 of 8 decidable trials (Cohen's kappa 0.47); 2 were judged undecidable from the evidence.
+<!-- findings:end -->
 
 ## Research question
 
-Can an LLM agent's own success claims be trusted, and how does the choice of
+Can an LLM agent's own success reports be trusted, and how does the choice of
 verification rule change which way it fails: reporting success when the task
 failed (over-confidence), or failure when it succeeded (over-deferral)?
 
 ## System
 
-BeepSME is a voice-first Windows desktop assistant I built. It routes a request
-to a skill (teach a page, solve homework, read aloud, translate, write a
-document, guide through an app, send a message) and acts on the computer. At
-the end of every task it decides `ok` or `failed` and shows that to the user.
-The full agent is private. Project page: <https://beepsme.com>. Portfolio:
-<https://beepsme.com/portfolio>.
+BeepSME is a voice-first Windows assistant. It routes a request to a skill
+(teach a page, solve homework, read aloud, translate, write a document, guide
+through an app, send a message) and acts on the computer. At the end of every
+task it decides `ok` or `failed` and shows that to the user
+([`src/GATE.md`](src/GATE.md)). The full agent is private. Project page:
+<https://beepsme.com>. Portfolio: <https://beepsme.com/portfolio>.
 
 ## Method
 
 - **Tasks:** 44 tasks over 7 skills, each with an oracle (a checkable success
   condition) written before the run. They are stratified into happy path,
-  over-confidence bait, over-deferral bait and impossible
-  ([`data/tasks.csv`](data/tasks.csv)).
+  over-confidence bait, over-deferral bait and impossible.
 - **Protocol fixed in advance:** committed to the private BeepSME repository
   on 2026-06-05. The run was on 2026-08-20. It is not on a public registry.
-  Copies and hashes: [`preregistration/`](preregistration/PROVENANCE.md).
-- **Run:** a driver set each precondition and typed the command, with the
-  microphone muted.
+  Copies, hashes and history: [`preregistration/`](preregistration/PROVENANCE.md).
+- **Run:** a driver set each precondition (a local page, the clipboard, an
+  app) and typed the command, with the microphone muted
+  ([`fixtures/`](fixtures/README.md)).
 - **Ground truth:** each trial is labelled 1/0 from world state (saved file,
-  answer key, recorded speech, screen), plus `achievable` (could it have been
-  done?) ([`data/ground_truth.csv`](data/ground_truth.csv)). The first rater
-  was an LLM (Claude), working from a sheet that hid the agent's claim and its
-  confidence score. These labels are the ones scored.
-- **Human second rating:** I then labelled a random sample of 10 trials
-  myself (seed fixed in
-  [`src/second_rater_sample.py`](src/second_rater_sample.py)). The sheet hid
-  the agent's report, its confidence score and the first rater's labels, and
-  showed only evidence from the scored attempt. "Cannot tell from the
-  evidence" was an allowed answer. My labels are in
-  [`data/second_rater_labels.csv`](data/second_rater_labels.csv), unchanged.
-- **Predictors** ([`data/gate_outputs.csv`](data/gate_outputs.csv)):
-  - the *gate verdict*, the agent's real end-of-task decision, read from the
-    run logs ([`src/GATE.md`](src/GATE.md));
+  answer key, recorded speech, screen), plus whether the task was achievable at
+  all. The first rater was an LLM (Claude), working from a sheet that hid the
+  agent's report and confidence. These are the labels scored.
+- **Human second rating:** I labelled a seeded random sample of 10 trials
+  blind to the agent's report, its confidence and the first rater's labels,
+  from evidence of the scored attempt only. "Cannot tell" was an allowed
+  answer. My labels are published unchanged.
+- **Predictors**, with "reports success" as the positive class:
+  - the *gate verdict*, the agent's real end-of-task decision;
   - the *logged claim*, the field the protocol named;
-  - *Proxy A*, a 0-100 self-confidence score from one grader call per task
-    ([`src/proxy_a.py`](src/proxy_a.py)).
+  - a *self-confidence score* (0-100, "Proxy A" in the code), from one extra
+    grader call per task ([`src/proxy_a.py`](src/proxy_a.py)).
 
-  "Reports success" is the positive class.
+Column definitions for every data file: [`data/README.md`](data/README.md).
 
-**Deviations.**
+**Deviations from the protocol.**
 1. 31 of 44 tasks were scored. Not run: 7 WhatsApp send and 5 Canva tutor
    tasks. Excluded: TEACH-04.
 2. The logged claim turned out to be hardcoded to "success" for any turn that
    did not crash. So the primary predictor is the real verdict, **a choice
    made after seeing the data**.
-3. No frozen build. The second rating was done after the first results were
-   known to me, not alongside the first rating.
+3. No frozen build. The second rating was done after I knew the first
+   results.
 
 ## Results
 
 <!-- results:start -->
 Scored trials: 31 of 44 pre-specified tasks (17 world-state successes, 14 failures).
 
-| Metric | Gate verdict (primary) | Logged claim (pre-registered field) |
+| Metric | Gate verdict (primary) | Logged claim (protocol's field) |
 |---|---|---|
 | TP | 12 | 17 |
 | FP (over-confidence) | 5 | 14 |
@@ -79,7 +91,7 @@ Scored trials: 31 of 44 pre-specified tasks (17 world-state successes, 14 failur
 
 Gate verdict 95% Wilson intervals: accuracy 0.501 to 0.814, false-positive rate 0.163 to 0.612, false-negative rate 0.133 to 0.531.
 
-Proxy A self-confidence: ROC AUC 0.798 (bootstrap 95% CI 0.677 to 0.906). Mean score 23.65 on successes, 9.64 on failures; highest score on any failure 15, lowest on any success 15. Mean score 12.14 where the gate verdict was right, 28.20 where it was wrong.
+Self-confidence score: ROC AUC 0.798 (bootstrap 95% CI 0.677 to 0.906). Mean score 23.65 on successes, 9.64 on failures; highest score on any failure 15, lowest on any success 15. Mean score 12.14 where the gate verdict was right, 28.20 where it was wrong.
 
 Over-confidence vs over-deferral under each decision rule (same 31 trials):
 
@@ -87,59 +99,53 @@ Over-confidence vs over-deferral under each decision rule (same 31 trials):
 |---|---|---|---|
 | Logged claim | 31 | 14 | 0 |
 | Gate verdict | 17 | 5 | 5 |
-| Proxy A >= 72 | 1 | 0 | 16 |
-| Proxy A >= 45 | 2 | 0 | 15 |
-| Proxy A >= 35 | 5 | 0 | 12 |
-| Proxy A >= 15 | 25 | 8 | 0 |
-| Proxy A >= 5 | 28 | 11 | 0 |
-| Proxy A >= 0 | 31 | 14 | 0 |
+| Confidence >= 72 | 1 | 0 | 16 |
+| Confidence >= 45 | 2 | 0 | 15 |
+| Confidence >= 35 | 5 | 0 | 12 |
+| Confidence >= 15 | 25 | 8 | 0 |
+| Confidence >= 5 | 28 | 11 | 0 |
+| Confidence >= 0 | 31 | 14 | 0 |
 
 Human second rating: 10 randomly drawn trials, labelled blind. 2 were marked "cannot tell from the evidence". On the other 8, the two raters agreed on 6 (observed agreement 0.750, Cohen's kappa 0.467).
 <!-- results:end -->
 
-![Confusion matrix of the gate verdict](results/confusion_matrix.png)
-![ROC curve of Proxy A, with the two binary rules as points](results/roc_curve.png)
-
-**In plain words:**
-
-- **The logged claim carries no information.** It says success on every
-  trial, including the impossible ones.
-- **The real gate errs both ways.** All 5 over-deferrals were an HTTP 413
-  error from the model proxy *after* the lesson, summary or page description
-  had been spoken.
-  4 of the 5 over-confident cases were tasks that could not be done. The gate
-  reports `ok` whenever nothing raised an error, so an honest refusal ("the
-  clipboard is empty") and a silent no-op look the same. It has no
-  "declined" outcome.
-- **Proxy A ranks successes above failures, but coarsely.** 20 of 31 trials
-  scored exactly 15. Its scores were higher where the gate was wrong, because
-  the gate's false negatives were delivered content.
-- **The decision rule decides the failure mode.** Moving from the logged claim
-  to the verdict to a Proxy A threshold trades over-confidence for
-  over-deferral. No rule tried keeps both low.
-
-The data do **not** show the agent being most confident where it was least
-correct: Proxy A was lower on failures.
+<p>
+<img src="results/confusion_matrix.png" alt="Confusion matrix of the gate verdict" width="46%">
+<img src="results/roc_curve.png" alt="ROC curve of the self-confidence score, with the two binary rules as points" width="48%">
+</p>
 
 ## Limitations
 
 - **Small sample:** 31 trials, one agent, one day, wide intervals.
-- **Rater agreement is moderate:** kappa on 8 trials is a rough estimate.
-  The first rater is from the same model family as the agent. The human
-  rater built the system and had seen the headline results. Some oracles
-  (faithful teaching, a document vs a spoken answer) need judgement. Where
-  the raters disagree, the scored label is the first rater's.
-- **Declining has no right answer here:** where declining was the right
+- **Rating:** kappa on 8 trials is a rough estimate. The first rater is from
+  the same model family as the agent. The second rater built the system and
+  knew the headline results. Where the raters disagree, the first rater's
+  label is scored.
+- **Declining has no correct label:** where declining was the right
   behaviour, the world-state label is still 0.
-- **Proxy A had a wrong input:** it was always told "Reported outcome:
-  success", and it is a post-hoc grader, not the agent's in-loop belief.
-- **Partial transcripts:** the reply logged in `data/raw/turns.jsonl` is
-  sometimes only an acknowledgement. Speech capture and screenshots are not
-  published (they show the operator's desktop).
-- **Private run logs:** [`src/extract.py`](src/extract.py) documents how
-  `data/` was taken from them. `data/raw/` keeps the exact lines used.
+- **The confidence score had a wrong input:** it was always told "Reported
+  outcome: success". It is also a post-hoc grader, not the agent's in-loop
+  belief.
+- **Partial evidence is published:** screenshots and speech capture show the
+  operator's desktop and stay private. The run logs are private too.
+  [`src/extract.py`](src/extract.py) documents how `data/` was taken from
+  them, and `data/raw/` keeps the exact lines used.
+
+## What I would do next
+
+- **Give the gate a third outcome, "declined",** and score refusals on their
+  own. 4 of the 5 false successes above need it.
+- **Tie the verdict to what the user received,** not to steps after
+  delivery. That removes every false failure seen here.
+- **Study the report as feedback to the user:** which format ("done",
+  "declined", a confidence, or the evidence itself) helps people catch the
+  agent's mistakes.
+- **Run the 13 missing tasks with several human raters,** so that
+  disagreement about what an oracle means can be measured, not just noted.
 
 ## Reproduce
+
+Requires Python 3.11 or newer.
 
 ```bash
 python -m venv .venv
@@ -149,9 +155,21 @@ python src/evaluate.py        # writes results/
 pytest -q
 ```
 
-No API key is needed. The tests check the metric maths on hand-made examples,
-that `data/gate_outputs.csv` follows from the raw log lines, and that
-`results/results.json` and the table above match a fresh run.
+No API key is needed. The tests check:
+- the metric maths against hand-made examples with known answers;
+- that `data/gate_outputs.csv` follows from the raw log lines;
+- that a fresh run reproduces `results/` and both README blocks exactly.
+
+```
+data/             tasks, labels, agent outputs (+ raw log lines, second rating)
+preregistration/  the protocol and task list as committed before the run
+fixtures/         the pages and clipboard text the agent was given
+src/              metrics.py (statistics), evaluate.py (analysis + CLI),
+                  report.py (tables, figures), derive.py and extract.py
+                  (how data/ was built), proxy_a.py (the confidence scorer)
+results/          results.json, generated tables, figures
+tests/            unit and reproduction tests
+```
 
 ## Related notes
 

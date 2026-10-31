@@ -1,0 +1,22 @@
+[project]
+name = "beepsme-verification-gate-eval"
+version = "1.0.0"
+description = "Scoring a desktop LLM agent's success reports against world-state ground truth."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Syeda Alishba Fatima", email = "alishbafatima25@gmail.com" }]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E731", "RUF001", "RUF002", "RUF003"]
