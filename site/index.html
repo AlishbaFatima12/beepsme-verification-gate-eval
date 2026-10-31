@@ -3,116 +3,161 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agent Report Explorer</title>
+<title>Agent Report Explorer &middot; Beepsme Research</title>
 <meta name="description" content="Interactive results: scoring a desktop LLM agent's success reports against world-state ground truth.">
+<link rel="icon" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="wrap">
-  <p class="kicker">BeepSME verification-gate evaluation</p>
-  <h1>Can an LLM agent&rsquo;s &ldquo;done&rdquo; be trusted?</h1>
-  <p class="lede">A desktop agent&rsquo;s end-of-task reports, scored against what actually happened on screen.
-    Every number on this page is computed in your browser from the repository&rsquo;s data files.</p>
-  <nav class="links">
-    <a href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval">Code and data</a>
-    <a href="docs/technical_report.pdf">Technical report (PDF)</a>
-    <a href="#evidence">Screenshots, solutions and replies</a>
-    <a href="#trials">Browse the trials</a>
-  </nav>
+<nav class="nav" id="nav" aria-label="Page">
+  <a class="brand" href="#top"><img src="assets/logo.png" alt="" width="24" height="24">Beepsme<span class="tag">Research</span></a>
+  <div class="links">
+    <a href="#results">Results</a><a href="#rule">Decision rule</a><a href="#raters">Raters</a>
+    <a href="#evidence">Evidence</a><a href="#trials">Tasks</a>
+  </div>
+  <a class="cta" href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval">Code on GitHub</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-inner container">
+    <span class="kicker">Verification-gate evaluation <b>&middot;</b> 44-task protocol, fixed in advance</span>
+    <h1>Can an LLM agent&rsquo;s <span class="accent">&ldquo;done&rdquo;</span> be trusted?</h1>
+    <p class="lede">A desktop agent&rsquo;s end-of-task reports, scored against what actually happened on screen.
+      Every number below is computed in your browser from the repository&rsquo;s own data files.</p>
+    <div class="actions">
+      <a class="btn btn-light" href="#rule">Explore the results</a>
+      <a class="btn btn-ghost-light" href="docs/technical_report.pdf">Technical report (PDF)</a>
+      <a class="btn btn-ghost-light" href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval">Code and data</a>
+    </div>
+    <p class="hero-meta"><span class="dot"></span>Syeda Alishba Fatima<span class="dot"></span>October 2026
+      <span class="dot"></span>Not peer-reviewed</p>
+  </div>
 </header>
 
-<main class="wrap">
-  <section aria-labelledby="h-numbers">
-    <h2 id="h-numbers">The short version</h2>
-    <div class="tiles" id="tiles"></div>
+<main>
+  <section class="stats" id="results" aria-label="Headline results">
+    <div class="container"><div class="tiles" id="tiles"></div></div>
   </section>
 
-  <section aria-labelledby="h-rule">
-    <h2 id="h-rule">Choose a decision rule</h2>
-    <p class="sub">Should the agent say &ldquo;done&rdquo;? Pick a rule and watch where its mistakes go.
-      Moving the threshold up removes false &ldquo;done&rdquo; reports but adds false &ldquo;failed&rdquo; ones.</p>
-    <div class="rule-controls" role="radiogroup" aria-label="Decision rule">
-      <label><input type="radio" name="rule" value="claim"> Logged claim field</label>
-      <label><input type="radio" name="rule" value="gate" checked> Agent&rsquo;s own verdict</label>
-      <label><input type="radio" name="rule" value="conf"> Self-confidence &ge;
-        <output id="thrOut">35</output></label>
-    </div>
-    <input type="range" id="thr" min="0" max="80" step="1" value="35" aria-label="Self-confidence threshold">
-    <div class="rule-grid">
-      <div>
-        <table class="cm" aria-label="Confusion matrix for the chosen rule">
-          <thead><tr><th></th><th>Reports &ldquo;done&rdquo;</th><th>Reports &ldquo;failed&rdquo;</th></tr></thead>
-          <tbody>
-            <tr><th>Task succeeded</th><td id="cTP"></td><td id="cFN" class="err"></td></tr>
-            <tr><th>Task failed</th><td id="cFP" class="err"></td><td id="cTN"></td></tr>
-          </tbody>
-        </table>
-        <p class="readout" id="readout" aria-live="polite"></p>
+  <section class="sec" id="rule" aria-labelledby="h-rule">
+    <div class="container">
+      <div class="sec-head">
+        <span class="kicker"><b>01</b> &middot; Decision rule</span>
+        <h2 id="h-rule">Choosing the rule chooses the mistake.</h2>
+        <p class="lede">Should the agent say &ldquo;done&rdquo;? Pick a rule and watch where its errors go. Raising the
+          confidence threshold removes false &ldquo;done&rdquo; reports but adds false &ldquo;failed&rdquo; ones.</p>
       </div>
-      <figure class="chart">
-        <svg id="tradeoff" viewBox="0 0 440 300" role="img"
-             aria-label="False done versus false failed for every decision rule"></svg>
-        <figcaption>Each point is a rule. The bottom-left corner (no errors) is never reached.</figcaption>
-        <div class="tip" id="tip" hidden></div>
-      </figure>
+      <div class="panel">
+        <div class="rule-controls" role="radiogroup" aria-label="Decision rule">
+          <label class="pill-opt"><input type="radio" name="rule" value="claim"><span>Logged claim field</span></label>
+          <label class="pill-opt"><input type="radio" name="rule" value="gate" checked><span>Agent&rsquo;s own verdict</span></label>
+          <label class="pill-opt"><input type="radio" name="rule" value="conf"><span>Self-confidence &ge;
+            <output id="thrOut">35</output></span></label>
+        </div>
+        <input type="range" id="thr" min="0" max="80" step="1" value="35" aria-label="Self-confidence threshold">
+        <div class="rule-grid">
+          <div>
+            <table class="cm" aria-label="Confusion matrix for the chosen rule">
+              <thead><tr><th></th><th>Reports &ldquo;done&rdquo;</th><th>Reports &ldquo;failed&rdquo;</th></tr></thead>
+              <tbody>
+                <tr><th>Task succeeded</th><td id="cTP"></td><td id="cFN" class="err"></td></tr>
+                <tr><th>Task failed</th><td id="cFP" class="err"></td><td id="cTN"></td></tr>
+              </tbody>
+            </table>
+            <p class="readout" id="readout" aria-live="polite"></p>
+          </div>
+          <figure class="chart">
+            <svg id="tradeoff" viewBox="0 0 440 300" role="img"
+                 aria-label="False done versus false failed for every decision rule"></svg>
+            <figcaption>Each point is a rule; hover for its numbers. The no-error corner is never reached.</figcaption>
+            <div class="tip" id="tip" hidden></div>
+          </figure>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section aria-labelledby="h-raters">
-    <h2 id="h-raters">Two raters, one question: what counts as success?</h2>
-    <p class="sub" id="raterSummary"></p>
-    <div class="table-scroll"><table class="data" id="raterTable"></table></div>
-    <details class="sheet">
-      <summary>See the sheet the human rater used</summary>
-      <img src="evidence/rating_sheet.png" loading="lazy"
-           alt="The blind rating sheet: instructions and the first trial, with the agent's own report hidden">
-      <p class="sub">Only evidence from the scored attempt is shown; the agent&rsquo;s report, its confidence and
-        the first rater&rsquo;s labels are hidden, and &ldquo;cannot tell&rdquo; is allowed.</p>
-    </details>
-  </section>
-
-  <section aria-labelledby="h-evidence" id="evidence">
-    <h2 id="h-evidence">What the agent produced</h2>
-    <p class="sub">The evidence behind the labels: what was on screen, the solutions the agent wrote, and what it
-      said. Most replies were in Urdu, so each is shown with an English translation for readers (translations are
-      not part of the scored data; the raters judged the original output).</p>
-    <nav class="subnav">
-      <a href="#ev-shots">Screenshots</a><a href="#ev-math">Math solutions</a><a href="#ev-said">What it said</a>
-    </nav>
-
-    <h3 id="ev-shots">Screenshots <span class="n" id="nShots"></span></h3>
-    <p class="sub">Taken at the end of the scored attempts and cropped to the relevant window. Click to open full
-      size. Only screenshots that show evidence for their own task are published
-      (<a href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/blob/main/evidence/README.md">which and why</a>).</p>
-    <div class="gallery" id="gallery"></div>
-
-    <h3 id="ev-math">Math solutions the agent wrote <span class="n" id="nMath"></span></h3>
-    <p class="sub">The complete solution file from each homework attempt, exactly as the agent saved it.</p>
-    <div class="solutions" id="solutions"></div>
-
-    <h3 id="ev-said">What the agent said, with English translations <span class="n" id="nSaid"></span></h3>
-    <div class="said" id="said"></div>
-  </section>
-
-  <section aria-labelledby="h-trials" id="trials">
-    <h2 id="h-trials">Every task</h2>
-    <p class="sub">All 44 pre-specified tasks. Click a row to see the oracle, what the rater checked and what the
-      agent reported.</p>
-    <div class="filters">
-      <label>Skill <select id="fSkill"><option value="">All</option></select></label>
-      <label>Designed to <select id="fRegime"><option value="">All</option></select></label>
-      <label>Verdict outcome <select id="fCell">
-        <option value="">All</option><option>TP</option><option>FP</option><option>TN</option><option>FN</option>
-        <option value="unscored">Not scored</option></select></label>
-      <span class="count" id="count"></span>
+  <section class="sec" id="raters" aria-labelledby="h-raters">
+    <div class="container">
+      <div class="sec-head">
+        <span class="kicker"><b>02</b> &middot; Ground truth</span>
+        <h2 id="h-raters">Two raters, one question: what counts as success?</h2>
+        <p class="lede" id="raterSummary"></p>
+      </div>
+      <div class="tablewrap"><table class="data" id="raterTable"></table></div>
+      <details class="case">
+        <summary><span class="num">sheet</span><span class="ttl">See the blind sheet the human rater used</span>
+          <span class="hint" aria-hidden="true"></span></summary>
+        <div class="case-body">
+          <img src="evidence/rating_sheet.png" loading="lazy"
+               alt="The blind rating sheet: instructions and the first trial, with the agent's own report hidden">
+          <p>Only evidence from the scored attempt is shown; the agent&rsquo;s report, its confidence and the first
+            rater&rsquo;s labels are hidden, and &ldquo;cannot tell&rdquo; is allowed.</p>
+        </div>
+      </details>
     </div>
-    <div class="table-scroll"><table class="data" id="trialTable"></table></div>
+  </section>
+
+  <section class="sec band" id="evidence" aria-labelledby="h-evidence">
+    <div class="container">
+      <div class="sec-head">
+        <span class="kicker"><b>03</b> &middot; Evidence</span>
+        <h2 id="h-evidence">What the agent actually produced.</h2>
+        <p class="lede">The screens, the solutions and the words behind every label. Most replies were in Urdu, so
+          each is shown with an English translation for readers; the raters judged the original output.</p>
+      </div>
+      <nav class="filters" aria-label="Evidence sections">
+        <a href="#ev-shots">Screenshots <span id="nShots"></span></a>
+        <a href="#ev-math">Math solutions <span id="nMath"></span></a>
+        <a href="#ev-said">What it said <span id="nSaid"></span></a>
+      </nav>
+
+      <h3 id="ev-shots">Screenshots</h3>
+      <p class="small-note">Taken at the end of the scored attempts and cropped to the relevant window. Click to open
+        full size. Only screenshots that show evidence for their own task are published
+        (<a class="ul" href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/blob/main/evidence/README.md">which and why</a>).</p>
+      <div class="gallery" id="gallery"></div>
+
+      <h3 id="ev-math">Math solutions the agent wrote</h3>
+      <p class="small-note">The complete solution file from each homework attempt, exactly as the agent saved it.</p>
+      <div class="solutions" id="solutions"></div>
+
+      <h3 id="ev-said">What the agent said, with English translations</h3>
+      <div class="said" id="said"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="trials" aria-labelledby="h-trials">
+    <div class="container">
+      <div class="sec-head">
+        <span class="kicker"><b>04</b> &middot; All tasks</span>
+        <h2 id="h-trials">Every task, every verdict.</h2>
+        <p class="lede">All 44 pre-specified tasks. Open a row for its oracle, what the rater checked, what the agent
+          reported and said, and its screenshot.</p>
+      </div>
+      <div class="selects">
+        <label>Skill <select id="fSkill"><option value="">All</option></select></label>
+        <label>Designed to <select id="fRegime"><option value="">All</option></select></label>
+        <label>Outcome <select id="fCell">
+          <option value="">All</option><option>TP</option><option>FP</option><option>TN</option><option>FN</option>
+          <option value="unscored">Not scored</option></select></label>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="tablewrap"><table class="data" id="trialTable"></table></div>
+    </div>
   </section>
 </main>
 
-<footer class="wrap">
-  <p>Syeda Alishba Fatima &middot; MIT license &middot; Source of every number:
-    <code>data/</code> and <code>results/results.json</code> in the repository.</p>
+<footer class="foot">
+  <div class="container">
+    <div class="brand"><img src="assets/logo.png" alt="" width="20" height="20">Beepsme <span class="tag">Research</span></div>
+    <p>Syeda Alishba Fatima &middot; <a class="ul" href="https://beepsme.com">beepsme.com</a> &middot; MIT license.
+      Every number on this page comes from <code>data/</code> and <code>results/results.json</code> in the
+      <a class="ul" href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval">repository</a>.</p>
+  </div>
 </footer>
 <script src="app.js"></script>
 </body>

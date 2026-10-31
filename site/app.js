@@ -230,7 +230,9 @@ function evidence({ all }) {
     <span class="muted">task ${r.truth ? "succeeded" : "failed"}; agent said ${r.gate ? "done" : "failed"}</span>`;
   const head = (r) => `<b>${esc(r.task_id.replace("EVAL-", ""))}</b> “${esc(r.description)}”`;
 
-  const shots = all.filter((r) => r.shot);
+  const order = ["homework", "read", "translate", "teach"];
+  const shots = all.filter((r) => r.shot)
+    .sort((a, b) => order.indexOf(a.skill_domain) - order.indexOf(b.skill_domain));
   $("nShots").textContent = `(${shots.length})`;
   $("gallery").innerHTML = shots.map((r) => {
     const src = `evidence/screenshots/${esc(r.task_id)}.png`;
@@ -315,3 +317,11 @@ load().then((data) => { tiles(data); ruleExplorer(data); raters(data); evidence(
       `<section><p>Could not load the data files (${esc(err.message)}). Open this page through GitHub Pages ` +
       "or a local web server rather than as a file.</p></section>");
   });
+
+// Brand nav: transparent over the dark hero, solid once the page scrolls.
+(() => {
+  const nav = $("nav"), hero = $("top");
+  const update = () => nav.classList.toggle("scrolled", window.scrollY > hero.offsetHeight - 80);
+  window.addEventListener("scroll", update, { passive: true });
+  update();
+})();
