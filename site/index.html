@@ -16,7 +16,7 @@
   <nav class="links">
     <a href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval">Code and data</a>
     <a href="docs/technical_report.pdf">Technical report (PDF)</a>
-    <a href="#evidence">Screenshots</a>
+    <a href="#evidence">Screenshots, solutions and replies</a>
     <a href="#trials">Browse the trials</a>
   </nav>
 </header>
@@ -72,11 +72,26 @@
   </section>
 
   <section aria-labelledby="h-evidence" id="evidence">
-    <h2 id="h-evidence">What the agent left on screen</h2>
-    <p class="sub">Screenshots taken at the end of the scored attempts, cropped to the relevant window.
-      Click one to open it full size. Only screenshots that show evidence for their own task are published
+    <h2 id="h-evidence">What the agent produced</h2>
+    <p class="sub">The evidence behind the labels: what was on screen, the solutions the agent wrote, and what it
+      said. Most replies were in Urdu, so each is shown with an English translation for readers (translations are
+      not part of the scored data; the raters judged the original output).</p>
+    <nav class="subnav">
+      <a href="#ev-shots">Screenshots</a><a href="#ev-math">Math solutions</a><a href="#ev-said">What it said</a>
+    </nav>
+
+    <h3 id="ev-shots">Screenshots <span class="n" id="nShots"></span></h3>
+    <p class="sub">Taken at the end of the scored attempts and cropped to the relevant window. Click to open full
+      size. Only screenshots that show evidence for their own task are published
       (<a href="https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/blob/main/evidence/README.md">which and why</a>).</p>
     <div class="gallery" id="gallery"></div>
+
+    <h3 id="ev-math">Math solutions the agent wrote <span class="n" id="nMath"></span></h3>
+    <p class="sub">The complete solution file from each homework attempt, exactly as the agent saved it.</p>
+    <div class="solutions" id="solutions"></div>
+
+    <h3 id="ev-said">What the agent said, with English translations <span class="n" id="nSaid"></span></h3>
+    <div class="said" id="said"></div>
   </section>
 
   <section aria-labelledby="h-trials" id="trials">

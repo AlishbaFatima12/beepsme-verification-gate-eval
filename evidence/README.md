@@ -22,6 +22,16 @@ For trials without a published screenshot, the label rests on the other
 evidence listed in `data/ground_truth.csv` (`how_verified`): saved files,
 captured speech and the agent's logged output.
 
+## What the agent said, in English
+
+[`agent_output.json`](agent_output.json) holds the agent's reply for every
+scored attempt (from `data/raw/turns.jsonl`), plus the speech the harness
+captured from the speaker where available (attempts after 12:47 UTC), and an
+English translation of each Urdu reply. The translations are for readers who do
+not read Urdu. They are not part of the evaluation data; the raters judged the
+original output. The explorer page shows them under "What the agent produced",
+next to all seven homework solution files from `data/artifacts/`.
+
 ## The human rating sheet
 
 ![The blind second-rating sheet, first trial](rating_sheet.png)

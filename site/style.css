@@ -115,3 +115,24 @@ tr.detail td { background: color-mix(in srgb, var(--ink) 3%, transparent); }
   border-bottom: 1px solid var(--line); }
 .gallery figcaption { font-size: 13px; color: var(--ink-2); padding: 8px 10px; }
 .gallery .muted { color: var(--ink-3); }
+
+h3 { font-size: 17px; margin: 22px 0 6px; }
+h3 .n { color: var(--ink-3); font-weight: 500; }
+.subnav { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 4px; }
+.gallery { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.solutions, .said { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 16px; }
+.sol, .said-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.sol header, .said-card header { font-size: 14px; margin-bottom: 8px; color: var(--ink-2); }
+.sol-body { font-size: 14px; max-height: 420px; overflow: auto; }
+.sol-body h4 { font-size: 16px; margin: 4px 0 6px; }
+.sol-body h5 { font-size: 14px; margin: 10px 0 4px; }
+.sol-body p { margin: 4px 0; }
+.sol-body ol { margin: 4px 0; padding-left: 22px; }
+.sol-body pre { background: color-mix(in srgb, var(--ink) 5%, transparent); padding: 8px; border-radius: 6px;
+  font-size: 12px; overflow-x: auto; }
+.orig { background: color-mix(in srgb, var(--ink) 4%, transparent); border-radius: 6px; padding: 6px 9px;
+  margin: 4px 0; font-size: 15px; line-height: 1.9; }
+.en { font-size: 14px; margin-top: 6px; }
+.en-tag { display: inline-block; font-size: 11px; font-weight: 600; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 999px; padding: 0 6px; margin-right: 4px; }
+.muted { color: var(--ink-3); }

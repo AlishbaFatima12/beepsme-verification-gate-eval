@@ -31,11 +31,12 @@ function parseCSV(text) {
 
 async function load() {
   const csv = (p) => fetch(p).then((r) => { if (!r.ok) throw new Error(p); return r.text(); }).then(parseCSV);
-  const [tasks, gt, gate, sample, second, results, manifest] = await Promise.all([
+  const [tasks, gt, gate, sample, second, results, manifest, spoken] = await Promise.all([
     csv("data/tasks.csv"), csv("data/ground_truth.csv"), csv("data/gate_outputs.csv"),
     csv("data/second_rater_sample.csv"), csv("data/second_rater_labels.csv"),
     fetch("results/results.json").then((r) => r.json()),
     fetch("evidence/manifest.json").then((r) => (r.ok ? r.json() : { screenshots: {} })),
+    fetch("evidence/agent_output.json").then((r) => (r.ok ? r.json() : { outputs: {} })),
   ]);
   const byId = (rows) => Object.fromEntries(rows.map((r) => [r.task_id, r]));
   const G = byId(gt), O = byId(gate), S = byId(second);
@@ -44,7 +45,7 @@ async function load() {
     const g = G[t.task_id], o = O[t.task_id];
     const scored = Boolean(g && o);
     const row = { ...t, scored, sampled: sampled.has(t.task_id), second: S[t.task_id]?.world_state_success ?? "",
-      shot: manifest.screenshots[t.task_id] ?? "" };
+      shot: manifest.screenshots[t.task_id] ?? "", said: spoken.outputs[t.task_id] ?? null };
     if (scored) {
       Object.assign(row, {
         truth: +g.world_state_success, achievable: +g.achievable, how: g.how_verified, notes: g.notes,
@@ -190,19 +191,66 @@ function raters({ all, results }) {
 }
 
 // ---------------------------------------------------------------------------
-// Screenshot gallery
+// Agent output: replies with translations, and the homework solution files
 // ---------------------------------------------------------------------------
-function gallery({ all }) {
+function saidBlock(o) {
+  const urdu = [o.reply, ...(o.speech || [])].filter(Boolean);
+  return (urdu.length ? urdu.map((u) => `<div class="orig" dir="auto" lang="ur">${md(u, true)}</div>`).join("")
+    : '<div class="orig muted">(nothing logged)</div>') +
+    `<div class="en"><span class="en-tag">English</span> ${esc(o.english)}</div>`;
+}
+
+// Small Markdown renderer for the agent's solution files: headings, bold,
+// italics, numbered lists, code blocks and the &middot; entity. Escapes first.
+function md(text, inline = false) {
+  const fmt = (t) => esc(t).replace(/&amp;middot;/g, "&middot;")
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|\W)_(.+?)_(?=\W|$)/g, "$1<i>$2</i>");
+  if (inline) return fmt(text);
+  const out = [];
+  let code = null, list = null;
+  for (const line of text.split(/\r?\n/)) {
+    if (line.startsWith("```")) {
+      if (code) { out.push(`<pre>${esc(code.join("\n"))}</pre>`); code = null; } else code = [];
+      continue;
+    }
+    if (code) { code.push(line); continue; }
+    const li = line.match(/^\s*\d+\.\s+(.*)$/);
+    if (li) { (list ??= []).push(`<li>${fmt(li[1])}</li>`); continue; }
+    if (list) { out.push(`<ol>${list.join("")}</ol>`); list = null; }
+    const h = line.match(/^(#{1,3})\s+(.*)$/);
+    if (h) out.push(`<h${h[1].length + 3}>${fmt(h[2])}</h${h[1].length + 3}>`);
+    else if (line.trim()) out.push(`<p>${fmt(line)}</p>`);
+  }
+  if (list) out.push(`<ol>${list.join("")}</ol>`);
+  return out.join("");
+}
+
+function evidence({ all }) {
+  const outcome = (r) => `<span class="chip ${r.cell === "TP" || r.cell === "TN" ? "ok" : "err"}">${esc(r.cell)}</span>
+    <span class="muted">task ${r.truth ? "succeeded" : "failed"}; agent said ${r.gate ? "done" : "failed"}</span>`;
+  const head = (r) => `<b>${esc(r.task_id.replace("EVAL-", ""))}</b> “${esc(r.description)}”`;
+
   const shots = all.filter((r) => r.shot);
+  $("nShots").textContent = `(${shots.length})`;
   $("gallery").innerHTML = shots.map((r) => {
     const src = `evidence/screenshots/${esc(r.task_id)}.png`;
-    const outcome = r.scored ? `${r.truth ? "succeeded" : "failed"}; agent said ${r.gate ? "done" : "failed"}` : "";
     return `<figure><a href="${src}" target="_blank" rel="noopener">
       <img src="${src}" loading="lazy" alt="${esc(r.task_id)}: ${esc(r.shot)}"></a>
-      <figcaption><b>${esc(r.task_id.replace("EVAL-", ""))}</b> “${esc(r.description)}”
-      <span class="chip ${r.cell === "TP" || r.cell === "TN" ? "ok" : "err"}">${esc(r.cell)}</span><br>
-      ${esc(r.shot)} <span class="muted">(${outcome})</span></figcaption></figure>`;
+      <figcaption>${head(r)}<br>${esc(r.shot)}<br>${outcome(r)}</figcaption></figure>`;
   }).join("");
+
+  const hw = all.filter((r) => r.scored && r.skill_domain === "homework");
+  $("nMath").textContent = `(${hw.length})`;
+  $("solutions").innerHTML = hw.map((r) => `<article class="sol" id="sol-${esc(r.task_id)}">
+    <header>${head(r)} ${outcome(r)}</header><div class="sol-body">Loading…</div></article>`).join("");
+  hw.forEach((r) => fetch(`data/artifacts/${r.task_id}.md`).then((x) => x.text()).then((t) => {
+    document.querySelector(`#sol-${r.task_id} .sol-body`).innerHTML = md(t);
+  }));
+
+  const said = all.filter((r) => r.said && r.skill_domain !== "homework");
+  $("nSaid").textContent = `(${said.length})`;
+  $("said").innerHTML = said.map((r) => `<article class="said-card">
+    <header>${head(r)} ${outcome(r)}</header>${saidBlock(r.said)}</article>`).join("");
 }
 
 // ---------------------------------------------------------------------------
@@ -242,6 +290,7 @@ function trials({ all }) {
           <dt>Achievable at all?</dt><dd>${r.achievable ? "yes" : "no"}</dd>
           <dt>Agent’s verdict</dt><dd>${r.gate ? "done" : "failed"}${r.reason ? ` (reason: ${esc(r.reason)})` : ""}</dd>
           <dt>Self-confidence</dt><dd>${r.conf} / 100</dd>` : `<dt>Status</dt><dd>${esc(r.study_status.replace("_", " "))}</dd>`}
+          ${r.said ? `<dt>What the agent said</dt><dd>${saidBlock(r.said)}</dd>` : ""}
           ${r.shot ? `<dt>Screenshot</dt><dd><figure class="shot">
             <a href="evidence/screenshots/${esc(r.task_id)}.png" target="_blank" rel="noopener">
             <img src="evidence/screenshots/${esc(r.task_id)}.png" loading="lazy"
@@ -260,7 +309,7 @@ function trials({ all }) {
   render();
 }
 
-load().then((data) => { tiles(data); ruleExplorer(data); raters(data); gallery(data); trials(data); })
+load().then((data) => { tiles(data); ruleExplorer(data); raters(data); evidence(data); trials(data); })
   .catch((err) => {
     document.querySelector("main").insertAdjacentHTML("afterbegin",
       `<section><p>Could not load the data files (${esc(err.message)}). Open this page through GitHub Pages ` +
