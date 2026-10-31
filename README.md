@@ -3,6 +3,7 @@
 [![tests](https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/AlishbaFatima12/beepsme-verification-gate-eval/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23840739.svg)](https://doi.org/10.5281/zenodo.23840739)
 
 An evaluation of the verification gate in BeepSME, a desktop LLM agent I
 built. The agent's own "it worked / it failed" reports are scored against what
@@ -12,7 +13,7 @@ and checked by the tests on each push.
 
 **[Open the interactive explorer](https://alishbafatima12.github.io/beepsme-verification-gate-eval/)**:
 move the decision threshold and watch the errors shift, browse all 44 tasks,
-and compare the two raters. **[Technical report (PDF)](docs/technical_report.pdf)**.
+and compare the two raters. **[Technical report (PDF)](docs/technical_report.pdf)**, archived on Zenodo: [doi:10.5281/zenodo.23840739](https://doi.org/10.5281/zenodo.23840739).
 **[Evidence screenshots](evidence/README.md)** from the scored attempts, and the blind rating sheet.
 
 <p align="center"><img src="results/tradeoff.png" alt="Errors of each decision rule: false done vs false failed" width="78%"></p>

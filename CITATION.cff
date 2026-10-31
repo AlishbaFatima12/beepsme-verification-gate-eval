@@ -17,3 +17,16 @@ keywords:
   - calibration
   - abstention
   - evaluation
+preferred-citation:
+  type: report
+  title: "Can an LLM Agent's \"Done\" Be Trusted? Scoring a Desktop Agent's Success Reports Against World-State Ground Truth"
+  authors:
+    - family-names: Fatima
+      given-names: Syeda Alishba
+      orcid: "https://orcid.org/0009-0007-7901-3224"
+  year: 2026
+  month: 10
+  publisher:
+    name: Zenodo
+  doi: 10.5281/zenodo.23840739
+  url: "https://doi.org/10.5281/zenodo.23840739"
