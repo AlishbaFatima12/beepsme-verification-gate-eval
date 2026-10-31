@@ -1,0 +1,32 @@
+task_id,gate_decision,gate_reason,gate_steps,logged_claim,proxy_a_confidence,n_attempts
+EVAL-TEACH-01,0,ai_http_413,6,1,72,1
+EVAL-TEACH-02,0,ai_http_413,5,1,35,1
+EVAL-TEACH-03,0,ai_http_413,2,1,15,1
+EVAL-TEACH-05,0,ai_http_413,3,1,35,1
+EVAL-TEACH-06,0,ai_http_413,2,1,15,1
+EVAL-HW-01,1,,1,1,15,1
+EVAL-HW-02,1,,1,1,15,1
+EVAL-HW-03,1,,1,1,15,1
+EVAL-HW-05,1,,1,1,15,1
+EVAL-HW-06,1,,1,1,15,1
+EVAL-HW-07,1,,1,1,15,1
+EVAL-READ-02,0,ai_http_413,1,1,35,1
+EVAL-READ-04,0,ai_http_413,1,1,45,1
+EVAL-XLATE-02,1,,1,1,15,1
+EVAL-WRITE-01,1,,1,1,15,1
+EVAL-WRITE-02,0,I got stuck waiting for something that wasn't happening. Try rephrasing the requ,1,1,5,1
+EVAL-WRITE-03,0,ai_http_413,1,1,5,1
+EVAL-WRITE-04,1,,0,1,0,1
+EVAL-WRITE-05,0,ai_http_413,1,1,5,1
+EVAL-WRITE-06,0,ai_http_413,1,1,15,1
+EVAL-TUTOR-03,1,,0,1,15,1
+EVAL-HW-04,1,,1,1,15,2
+EVAL-READ-01,1,,1,1,15,2
+EVAL-READ-05,1,,1,1,15,2
+EVAL-READ-06,0,read_clipboard raised: unknown action 'read_clipboard',1,1,15,2
+EVAL-XLATE-01,1,,1,1,15,3
+EVAL-XLATE-03,1,,1,1,15,3
+EVAL-XLATE-04,0,ai_http_413,0,1,0,3
+EVAL-XLATE-05,1,,1,1,15,3
+EVAL-XLATE-06,1,,1,1,15,3
+EVAL-READ-03,0,ai_http_413,0,1,0,3

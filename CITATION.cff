@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this evaluation or its data, please cite it as below."
+title: "beepsme-verification-gate-eval: scoring a desktop LLM agent's success reports against world-state ground truth"
+type: software
+authors:
+  - family-names: Fatima
+    given-names: Syeda Alishba
+    email: alishbafatima25@gmail.com
+    orcid: "https://orcid.org/0009-0007-7901-3224"
+date-released: 2026-10-31
+license: MIT
+repository-code: "https://github.com/AlishbaFatima12/beepsme-verification-gate-eval"
+keywords:
+  - LLM agents
+  - verification
+  - calibration
+  - abstention
+  - evaluation

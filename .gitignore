@@ -1,0 +1,10 @@
+.env
+# personal study notes, kept local
+EXPLAIN.md
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,11 @@
+task_id,world_state_success,note
+EVAL-WRITE-06,1,
+EVAL-READ-01,1,
+EVAL-HW-03,1,
+EVAL-READ-03,0,
+EVAL-WRITE-05,0,
+EVAL-HW-02,1,
+EVAL-XLATE-05,cannot_tell,
+EVAL-TEACH-05,1,
+EVAL-HW-07,0,
+EVAL-READ-06,cannot_tell,
