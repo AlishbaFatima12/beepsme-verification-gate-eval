@@ -113,13 +113,71 @@ def results_table(res: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+# Validated categorical slots (light surface), one per decision rule.
+SURFACE = "#fcfcfb"
+INK, INK_2, GRID = "#0b0b0b", "#52514e", "#e6e5e1"
+C_CONF, C_GATE, C_CLAIM = "#2a78d6", "#eb6834", "#1baf7a"
+
+
+def _style(ax) -> None:
+    ax.set_facecolor(SURFACE)
+    ax.grid(color=GRID, lw=1)
+    ax.set_axisbelow(True)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_color(GRID)
+    ax.tick_params(colors=INK_2, labelsize=9)
+
+
+def plot_tradeoff(res: dict, out_dir: Path, meta: dict) -> None:
+    """The summary figure: false 'done' vs false 'failed' for every decision rule."""
+    import matplotlib.pyplot as plt
+
+    g, c, p = res["gate_decision"], res["logged_claim"], res["proxy_a"]
+    pts = [pt for pt in p["roc"] if pt["threshold"] != "inf"]
+    fig, ax = plt.subplots(figsize=(6.4, 4.4), dpi=160, facecolor=SURFACE)
+    _style(ax)
+    ring = {"edgecolor": SURFACE, "linewidth": 2, "zorder": 3}
+    ax.plot([pt["FP"] for pt in pts], [pt["FN"] for pt in pts], color=C_CONF, lw=2, zorder=2)
+    ax.scatter([pt["FP"] for pt in pts], [pt["FN"] for pt in pts], s=70, color=C_CONF, marker="o",
+               label="Accept if self-confidence ≥ t", **ring)
+    for pt in pts:
+        ax.annotate(f"t={pt['threshold']:.0f}", (pt["FP"], pt["FN"]), textcoords="offset points",
+                    xytext=(7, 4), fontsize=8, color=INK_2)
+    ax.scatter([g["FP"]], [g["FN"]], s=110, color=C_GATE, marker="s", label="Agent's own verdict", **ring)
+    ax.annotate("agent's verdict", (g["FP"], g["FN"]), textcoords="offset points", xytext=(9, 6),
+                fontsize=9, color=INK, fontweight="bold")
+    ax.scatter([c["FP"]], [c["FN"]], s=130, color=C_CLAIM, marker="^", label="Logged claim field", **ring)
+    ax.annotate("logged claim", (c["FP"], c["FN"]), textcoords="offset points", xytext=(0, 22),
+                fontsize=9, color=INK, ha="center", fontweight="bold")
+    ax.scatter([0], [0], s=60, facecolor="none", edgecolor=INK_2, lw=1.2, zorder=3)
+    ax.annotate("ideal: no errors", (0, 0), textcoords="offset points", xytext=(8, 6), fontsize=8,
+                color=INK_2, style="italic")
+    n_fail, n_succ = res["data"]["world_state_failures"], res["data"]["world_state_successes"]
+    ax.set_xlim(-0.8, n_fail + 0.8)
+    ax.set_ylim(-0.8, n_succ + 0.8)
+    ax.set_xticks(range(0, n_fail + 1, 2))
+    ax.set_yticks(range(0, n_succ + 1, 2))
+    ax.set_xlabel(f"False “done”: failures reported as success (of {n_fail})", color=INK, fontsize=10)
+    ax.set_ylabel(f"False “failed”: successes reported\nas failures (of {n_succ})", color=INK,
+                  fontsize=10)
+    ax.set_title("Every decision rule trades one error for the other", loc="left", color=INK,
+                 fontsize=12, fontweight="bold")
+    ax.legend(loc="upper right", fontsize=8, frameon=False, labelcolor=INK_2)
+    fig.tight_layout()
+    fig.savefig(out_dir / "tradeoff.png", metadata=meta, facecolor=SURFACE)
+    plt.close(fig)
+
+
 def plot(res: dict, out_dir: Path) -> None:
-    """Write confusion_matrix.png and roc_curve.png into out_dir."""
+    """Write tradeoff.png, confusion_matrix.png and roc_curve.png into out_dir."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     meta = {"Software": None}  # no version stamp, so reruns give identical bytes
+    plot_tradeoff(res, out_dir, meta)
     g = res["gate_decision"]
     fig, ax = plt.subplots(figsize=(4.6, 4.0), dpi=150)
     cells = np.array([[g["TP"], g["FN"]], [g["FP"], g["TN"]]])
@@ -138,17 +196,17 @@ def plot(res: dict, out_dir: Path) -> None:
     p = res["proxy_a"]
     fig, ax = plt.subplots(figsize=(4.8, 4.4), dpi=150)
     ax.plot([0, 1], [0, 1], color="0.75", lw=1, ls="--", label="chance")
-    ax.plot([pt["fpr"] for pt in p["roc"]], [pt["tpr"] for pt in p["roc"]], marker="o", ms=4,
-            color="#1f5fa8", label=f"self-confidence score (AUC {p['auc']:.3f})")
+    ax.plot([pt["fpr"] for pt in p["roc"]], [pt["tpr"] for pt in p["roc"]], marker="o", ms=5, lw=2,
+            color=C_CONF, mec=SURFACE, mew=1.5, label=f"self-confidence score (AUC {p['auc']:.3f})")
     for pt in p["roc"]:
         if pt["threshold"] != "inf":
             ax.annotate(f"≥{pt['threshold']:.0f}", (pt["fpr"], pt["tpr"]),
-                        textcoords="offset points", xytext=(6, -10), fontsize=7, color="#1f5fa8")
+                        textcoords="offset points", xytext=(6, -10), fontsize=7, color=INK_2)
     gd, lc = res["gate_decision"], res["logged_claim"]
-    ax.scatter([gd["false_positive_rate"]], [gd["recall"]], marker="s", s=60, color="#c0392b",
-               zorder=3, label="gate verdict")
-    ax.scatter([lc["false_positive_rate"]], [lc["recall"]], marker="^", s=70, color="#7f8c8d",
-               zorder=3, label="logged claim")
+    ax.scatter([gd["false_positive_rate"]], [gd["recall"]], marker="s", s=70, color=C_GATE,
+               edgecolor=SURFACE, linewidth=2, zorder=3, label="agent's verdict")
+    ax.scatter([lc["false_positive_rate"]], [lc["recall"]], marker="^", s=80, color=C_CLAIM,
+               edgecolor=SURFACE, linewidth=2, zorder=3, label="logged claim")
     ax.set_xlabel("False-positive rate (over-confidence)")
     ax.set_ylabel("True-positive rate")
     ax.set_xlim(-0.02, 1.1)
